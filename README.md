@@ -98,7 +98,7 @@ DE         # Launch XFCE4 or I3 based on selection
 - Shell: `~/.bashrc`
 - Colors: `~/.termux/colors.properties`
 - Fastfetch: `~/fastfetch/config.jsonc`
-- Desktop: `~/.termux/.startxfce4`
+- Desktop: `~/.termux/.startxfce4` or  `~/.termux/.starti3`
 
 
 ## Credits
