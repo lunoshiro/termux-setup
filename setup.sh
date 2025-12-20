@@ -186,7 +186,7 @@ EOF
         I3_INSTALLED=0
         if ask "Install desktop environment" n; then
             # DESKTOP ENVIRONMENT SELECTION
-            choice -t "Select Desktop Environment:" -c 1 "XFCE (Fast)" -c 2 "i3 Window Manager (Customizable)" -c 0 "No Desktop Environment" -ov desk_choice
+            choice -t "Select Desktop Environment:" -c 1 "XFCE (Fast) (Full-Setup)" -c 2 "i3 Window Manager (Customizable) (Install Only)" -c 0 "No Desktop Environment" -ov desk_choice
 
             # OPTION 1 — XFCE
             if [[ $desk_choice == "1" ]]; then
