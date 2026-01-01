@@ -1,95 +1,94 @@
 #!/data/data/com.termux/files/usr/bin/bash
 # Helper Function
 ask() {
-    local prompt="$1" default="$2" answer
+  local prompt="$1" default="$2" answer
 
-    while true; do
-        if [ "$default" = "y" ]; then
-            echo -n "$prompt (Y/n): "
-        else
-            echo -n "$prompt (y/N): "
-        fi
-        read answer
-        [ -z "$answer" ] && answer="$default"
-        answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
-        case "$answer" in
-            y | yes) return 0 ;;
-            n | no) return 1 ;;
-            *) echo "Invalid choice, try again." ;;
-        esac
-    done
+  while true; do
+    if [ "$default" = "y" ]; then
+      echo -n "$prompt (Y/n): "
+    else
+      echo -n "$prompt (y/N): "
+    fi
+    read answer
+    [ -z "$answer" ] && answer="$default"
+    answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
+    case "$answer" in
+      y | yes) return 0 ;;
+      n | no) return 1 ;;
+      *) echo "Invalid choice, try again." ;;
+    esac
+  done
 }
 
 choice() {
-    local title="" outvar="choice_output" input
-    local keys=() labels=()
+  local title="" outvar="choice_output" input
+  local keys=() labels=()
 
-    while (($#)); do
-        case $1 in
-            -t)
-                title=$2
-                shift 2
-                ;;
-            -c)
-                keys+=("$2")
-                labels+=("$3")
-                shift 3
-                ;;
-            -ov)
-                outvar=$2
-                shift 2
-                ;;
-            *) shift ;;
-        esac
-    done
+  while (($#)); do
+    case $1 in
+      -t)
+        title=$2
+        shift 2
+        ;;
+      -c)
+        keys+=("$2")
+        labels+=("$3")
+        shift 3
+        ;;
+      -ov)
+        outvar=$2
+        shift 2
+        ;;
+      *) shift ;;
+    esac
+  done
 
-    [[ $title ]] && echo "$title"
+  [[ $title ]] && echo "$title"
+  for i in "${!keys[@]}"; do
+    printf "%s) %s\n" "${keys[i]}" "${labels[i]}"
+  done
+
+  while true; do
+    read -rp "Select: " input
+    input="${input//[[:space:]]/}"
+
     for i in "${!keys[@]}"; do
-        printf "%s) %s\n" "${keys[i]}" "${labels[i]}"
+      [[ $input == "${keys[i]}" ]] && {
+        printf -v "$outvar" %s "$input"
+        return 0
+      }
     done
 
-    while true; do
-        read -rp "Select: " input
-        input="${input//[[:space:]]/}"
-
-        for i in "${!keys[@]}"; do
-            [[ $input == "${keys[i]}" ]] && {
-                printf -v "$outvar" %s "$input"
-                return 0
-            }
-        done
-
-        echo "Invalid choice."
-    done
+    echo "Invalid choice."
+  done
 }
 
 # Initial
-echo "Termux Setup v1.0"
+echo "Termux Setup"
 if ask "Hello $(whoami), Do you want to start setup" y; then
-    if [ $(($(date +%s) - $(stat -c %Y $PREFIX))) -le 3600 ] || ask "It looks like your termux is not freshly installed (You can use termux-reset or go to app settings and clear data to reset your termux) or Do you want to continue anyway (may break your current setup)?" n; then
-        cd "$HOME"
-        pkg update -y
-        pkg upgrade -y
-        pkg install x11-repo tur-repo root-repo -y
-        apt autoclean -y
-        apt autoremove -y
-        termux-setup-storage
+  if [ $(($(date +%s) - $(stat -c %Y $PREFIX))) -le 3600 ] || ask "It looks like your termux is not freshly installed (You can use termux-reset or go to app settings and clear data to reset your termux) or Do you want to continue anyway (may break your current setup)?" n; then
+    cd "$HOME"
+    pkg update -y
+    pkg upgrade -y
+    pkg install x11-repo tur-repo root-repo -y
+    apt autoclean -y
+    apt autoremove -y
+    termux-setup-storage
 
-        # Configure Terminal Environment
-        # if ask "Apply termux.properties custom configuration (Not implemented yet)" y; then
-        # cat >"$HOME/.termux/termux.properties" <<'EOF'
-        # EOF
-        # fi
+    if ask "Download and Install Noto Nerd Font" y; then
+      pkg install curl xz-utils fontconfig fontconfig-utils jq -y
+      rm -rf "$PREFIX/share/fonts/Noto"
+      mkdir -p "$PREFIX/share/fonts/Noto"
+      curl -L "https://github.com/ryanoasis/nerd-fonts/releases/download/$(curl -s https://api.github.com/repos/ryanoasis/nerd-fonts/releases/latest | jq -r .tag_name)/Noto.tar.xz" | tar -xJ -C "$PREFIX/share/fonts/Noto"
+      chmod 644 "$PREFIX/share/fonts/Noto/*"
+      fc-cache -fv
+      mkdir -p "$HOME/.termux"
+      rm -f "$HOME/.termux/font.ttf"
+      cp "$PREFIX/share/fonts/Noto/NotoMonoNerdFontMono-Regular.ttf" "$HOME/.termux/font.ttf"
+    fi
 
-        if ask "Install and Apply JetBrainsMono Nerd Font Mono (Regular)" y; then
-            pkg install curl -y
-            rm -f "$HOME/.termux/font.ttf"
-            curl -L -o "$HOME/.termux/font.ttf" \
-                "https://raw.githubusercontent.com/ryanoasis/nerd-fonts/master/patched-fonts/JetBrainsMono/Ligatures/Regular/JetBrainsMonoNerdFontMono-Regular.ttf"
-        fi
-
-        if ask "Apply Tokyo Night colorscheme" y; then
-            cat > "$HOME/.termux/colors.properties" << 'EOF'
+    if ask "Apply Tokyo Night colorscheme" y; then
+      cat > "$HOME/.termux/colors.properties" << 'EOF'
 # Tokyo Night color scheme
 foreground=#a9b1d6
 background=#1a1b26
@@ -113,91 +112,77 @@ color13=#bb9af7
 color14=#7dcfff
 color15=#c0caf5
 EOF
-        fi
+    fi
 
-        if ask "Install Fastfetch with custom config (Nerd Font is required!)" y; then
-            pkg install fastfetch -y
-            mkdir -p "$HOME/fastfetch"
-            cat > "$HOME/fastfetch/config.jsonc" << 'EOF'
+    if ask "Install Fastfetch with custom config" y; then
+      pkg install fastfetch -y
+      mkdir -p "$HOME/fastfetch"
+      cat > "$HOME/fastfetch/config.jsonc" << 'EOF'
 {
   "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+
   "logo": {
-    "type": "builtin",
-    "height": 15,
-    "width": 30,
-    "padding": {
-      "top": 5,
-      "left": 3
-    }
+    "type": "small",
+    "padding": { "right": 2 }
   },
+
+  "display": {
+    "separator": " : "
+  },
+
   "modules": [
+    "title",
     "break",
-    { "type": "custom", "format": "\u001b[90m┌─ Hardware ───────────────────────────────────────────┐" },
-    { "type": "host", "key": " PC", "keyColor": "green" },
-    { "type": "cpu", "key": "│ ├", "keyColor": "green" },
-    { "type": "gpu", "key": "│ ├󰍛", "keyColor": "green" },
-    { "type": "memory", "key": "│ ├󰍛", "keyColor": "green" },
-    { "type": "disk", "key": "└ └", "keyColor": "green" },
-    { "type": "custom", "format": "\u001b[90m└─────────────────────────────────────────────────────┘" },
+    { "type": "host",   "key": "host", "keyColor": "green" },
+    { "type": "os",     "key": "os" },
+    { "type": "cpu",    "key": "cpu" },
+    { "type": "gpu",    "key": "gpu" },
+    { "type": "kernel", "key": "kernel" },
+    { "type": "packages", "key": "pkgs" },
+    { "type": "uptime",   "key": "uptime" },
+    { "type": "memory",   "key": "memory" },
+    { "type": "disk", "key": "disk" },
     "break",
-    { "type": "custom", "format": "\u001b[90m┌─ Software ───────────────────────────────────────────┐" },
-    { "type": "os", "key": " OS", "keyColor": "yellow" },
-    { "type": "kernel", "key": "│ ├", "keyColor": "yellow" },
-    { "type": "bios", "key": "│ ├", "keyColor": "yellow" },
-    { "type": "packages", "key": "│ ├󰏖", "keyColor": "yellow" },
-    { "type": "shell", "key": "└ └", "keyColor": "yellow" },
-    "break",
-    { "type": "de", "key": " DE", "keyColor": "blue" },
-    { "type": "lm", "key": "│ ├", "keyColor": "blue" },
-    { "type": "wm", "key": "│ ├", "keyColor": "blue" },
-    { "type": "wmtheme", "key": "│ ├󰉼", "keyColor": "blue" },
-    { "type": "terminal", "key": "└ └", "keyColor": "blue" },
-    { "type": "custom", "format": "\u001b[90m└─────────────────────────────────────────────────────┘" },
-    "break",
-    { "type": "custom", "format": "\u001b[90m┌─ Uptime / Age / DT ─────────────────────────────────┐" },
-    { "type": "command", "key": "  OS Age ", "keyColor": "magenta",
-      "text": "birth=$(stat -c %W / 2>/dev/null || stat -f %c /); now=$(date +%s); days=$(( (now - birth) / 86400 )); printf '%d days' $days"
-    },
-    { "type": "uptime", "key": "  Uptime ", "keyColor": "magenta" },
-    { "type": "datetime", "key": "  DateTime ", "keyColor": "magenta" },
-    { "type": "custom", "format": "\u001b[90m└─────────────────────────────────────────────────────┘" },
-    { "type": "colors", "paddingLeft": 2, "symbol": "circle" }
+    { "type": "colors", "symbol": "circle" }
   ]
 }
 EOF
 
-            # Ask run fastfetch
-            if ask "Run fastfetch on start" n; then
-                RUN_FASTFETCH=1
-            else
-                RUN_FASTFETCH=0
-            fi
+      # Ask run fastfetch
+      if ask "Run fastfetch on start" n; then
+        RUN_FASTFETCH=1
+      else
+        RUN_FASTFETCH=0
+      fi
 
-            # Ask for logo in fastfetch
-            if ask "Add OS logo to fastfetch output" y; then
-                FASTFETCH_LOGO=1
-            else
-                FASTFETCH_LOGO=0
-            fi
-        fi
+      # Ask for logo in fastfetch
+      if ask "Add OS logo to fastfetch output" y; then
+        FASTFETCH_LOGO=1
+      else
+        FASTFETCH_LOGO=0
+      fi
+    fi
 
-        # Configure Desktop Environment
-        XFCE_INSTALLED=0
-        I3_INSTALLED=0
-        if ask "Install desktop environment" n; then
-            # DESKTOP ENVIRONMENT SELECTION
-            choice -t "Select Desktop Environment:" -c 1 "XFCE (Fast) (Full-Setup)" -c 2 "i3 Window Manager (Customizable) (Install Only)" -c 0 "No Desktop Environment" -ov desk_choice
+    # Configure Desktop Environment
+    XFCE_INSTALLED=0
+    I3_INSTALLED=0
+    if ask "Install desktop environment" n; then
+      pkg install x11-repo tur-repo -y
+      pkg install angle-android virglrenderer-android -y
+      pkg install mesa-demos -y
+      pkg install termux-x11-nightly pulseaudio pavucontrol -y
 
-            # OPTION 1 — XFCE
-            if [[ $desk_choice == "1" ]]; then
-                XFCE_INSTALLED=1
-                echo "Installing XFCE Desktop..."
-                pkg install x11-repo tur-repo -y
-                pkg install termux-x11-nightly xfce4 xfce4-goodies pulseaudio pavucontrol -y
-                pkg install virglrenderer-android mesa-demos -y
+      # DESKTOP ENVIRONMENT SELECTION
+      choice -t "Select Desktop Environment/Window Nanager:" -c 1 "XFCE (Desktop Environment)" -c 2 "i3 (Window Manager) (Install Only)" -c 0 "No Desktop Environment" -ov desk_choice
 
-                # Launcher
-                cat > "$HOME/.termux/.startxfce4" << 'EOF'
+      # OPTION 1 — XFCE
+      if [[ $desk_choice == "1" ]]; then
+        XFCE_INSTALLED=1
+        echo "Installing XFCE Desktop Environment..."
+        pkg install xfce4 xfce4-goodies -y
+
+        # Launcher
+        cat > "$HOME/.termux/.startxfce4" << 'EOF'
 #!/data/data/com.termux/files/usr/bin/bash
 
 killall -9 termux-wake-lock pulseaudio virgl_test_server_android $(pgrep -f "termux.x11")
@@ -205,7 +190,8 @@ killall -9 termux-wake-lock pulseaudio virgl_test_server_android $(pgrep -f "ter
 pulseaudio --start --load="module-native-protocol-tcp auth-ip-acl=127.0.0.1 auth-anonymous=1" --exit-idle-time=-1
 pacmd load-module module-native-protocol-tcp auth-ip-acl=127.0.0.1 auth-anonymous=1
 
-virgl_test_server_android &
+# virgl_test_server_android &
+virgl_test_server_android --angle-gl &
 
 export XDG_RUNTIME_DIR=${TMPDIR}
 export PULSE_SERVER=127.0.0.1
@@ -217,20 +203,17 @@ sleep 1
 
 env DISPLAY=:0 dbus-launch --exit-with-session startxfce4 &
 EOF
-                chmod +x "$HOME/.termux/.startxfce4"
-            fi
+        chmod +x "$HOME/.termux/.startxfce4"
+      fi
 
-            # OPTION 2 — i3 WINDOW MANAGER
-            if [[ $desk_choice == "2" ]]; then
-                I3_INSTALLED=1
-                echo "Installing i3 Window Manager..."
+      # OPTION 2 — i3 WINDOW MANAGER
+      if [[ $desk_choice == "2" ]]; then
+        I3_INSTALLED=1
+        echo "Installing i3 Window Manager..."
+        pkg install i3 -y
 
-                pkg install x11-repo tur-repo -y
-                pkg install termux-x11-nightly i3 i3status dmenu rofi feh pulseaudio pavucontrol -y
-                pkg install virglrenderer-android mesa-demos -y
-
-                # Launcher
-                cat > "$HOME/.termux/.starti3" << 'EOF'
+        # Launcher
+        cat > "$HOME/.termux/.starti3" << 'EOF'
 #!/data/data/com.termux/files/usr/bin/bash
 
 killall -9 termux-wake-lock pulseaudio virgl_test_server_android $(pgrep -f "termux.x11")
@@ -238,7 +221,8 @@ killall -9 termux-wake-lock pulseaudio virgl_test_server_android $(pgrep -f "ter
 pulseaudio --start --load="module-native-protocol-tcp auth-ip-acl=127.0.0.1 auth-anonymous=1" --exit-idle-time=-1
 pacmd load-module module-native-protocol-tcp auth-ip-acl=127.0.0.1 auth-anonymous=1
 
-virgl_test_server_android &
+# virgl_test_server_android &
+virgl_test_server_android --angle-gl &
 
 export XDG_RUNTIME_DIR=${TMPDIR}
 export PULSE_SERVER=127.0.0.1
@@ -250,83 +234,68 @@ sleep 1
 
 env DISPLAY=:0 dbus-launch --exit-with-session i3 &
 EOF
-                chmod +x "$HOME/.termux/.starti3"
+        chmod +x "$HOME/.termux/.starti3"
+      fi
 
-                # i3 config is comingsoon
-            fi
+      # OPTION 0 — NO DESKTOP
+      if [[ $desk_choice == "0" ]]; then
+        echo "No Desktop Environment selected. Skipping..."
+      fi
 
-            # OPTION 0 — NO DESKTOP
-            if [[ $desk_choice == "0" ]]; then
-                echo "No Desktop Environment selected. Skipping..."
-            fi
+      if ask "Install FireFox" y; then
+        pkg install firefox -y
+      fi
+      if ask "Install Code OSS" y; then
+        pkg install code-oss -y
+      fi
 
-            if ask "Install FireFox" y; then
-                pkg install firefox -y
-            fi
-            if ask "Install Code OSS" y; then
-                pkg install code-oss -y
-            fi
+    fi
 
-            # Optional font
-            if ask "Add JetBrainsMono Nerd Font Mono (Regular) to Desktop Environment" y; then
-                pkg install curl fontconfig -y
-                mkdir -p "$PREFIX/share/fonts/TTF"
-                rm -f "$PREFIX/share/fonts/TTF/JetBrainsMonoNerdFontMono-Regular.ttf"
-                curl -L -o "$PREFIX/share/fonts/TTF/JetBrainsMonoNerdFontMono-Regular.ttf" \
-                    "https://raw.githubusercontent.com/ryanoasis/nerd-fonts/master/patched-fonts/JetBrainsMono/Ligatures/Regular/JetBrainsMonoNerdFontMono-Regular.ttf"
-                chmod 644 "$PREFIX/share/fonts/TTF/JetBrainsMonoNerdFontMono-Regular.ttf"
-                fc-cache -fv
-            fi
-
-        fi
-
-        # Install rish (Shizuku)
-        if ask "Install rish (ADB Shell access, Required Shizuku installed!)" n; then
-            # Root check
-            if [ "$(id -u)" = 0 ]; then
-                echo "Don't run as root, skipping..."
+    # Install rish (Shizuku)
+    if ask "Install rish (ADB Shell access, Required Shizuku installed!)" n; then
+      # Root check
+      if [ "$(id -u)" = 0 ]; then
+        echo "Don't run as root, skipping..."
+      else
+        # Ensure tools exist
+        echo "Checking tools..."
+        pkg install curl jq unzip sed -y
+        # Fetch release URL
+        echo "Fetching latest Shizuku release..."
+        SHIZUKU_APK_URL=$(curl -sL https://api.github.com/repos/RikkaApps/Shizuku/releases/latest | jq -r 'select(.prerelease==false) | .assets[] | select(.name|endswith(".apk")) | .browser_download_url' | head -n1)
+        if [ -z "$SHIZUKU_APK_URL" ]; then
+          echo "Failed to get APK URL, skipping..."
+        else
+          TMPDIR=$(mktemp -d)
+          echo "Downloading APK..."
+          if ! curl -sL -o "$TMPDIR/S.apk" "$SHIZUKU_APK_URL"; then
+            echo "Download failed, skipping..."
+          else
+            echo "Extracting..."
+            unzip -q "$TMPDIR/S.apk" -d "$TMPDIR"
+            if [ ! -f "$TMPDIR/assets/rish" ] || [ ! -f "$TMPDIR/assets/rish_shizuku.dex" ]; then
+              echo "Missing files in APK, skipping..."
             else
-                # Ensure tools exist
-                echo "Checking tools..."
-                for tool in curl jq unzip sed; do
-                    command -v "$tool" > /dev/null 2>&1 || pkg install "$tool" -y
-                done
-                # Fetch release URL
-                echo "Fetching latest Shizuku release..."
-                SHIZUKU_APK_URL=$(curl -sL https://api.github.com/repos/RikkaApps/Shizuku/releases/latest | jq -r 'select(.prerelease==false) | .assets[] | select(.name|endswith(".apk")) | .browser_download_url' | head -n1)
-                if [ -z "$SHIZUKU_APK_URL" ]; then
-                    echo "Failed to get APK URL, skipping..."
-                else
-                    TMPDIR=$(mktemp -d)
-                    echo "Downloading APK..."
-                    if ! curl -sL -o "$TMPDIR/S.apk" "$SHIZUKU_APK_URL"; then
-                        echo "Download failed, skipping..."
-                    else
-                        echo "Extracting..."
-                        unzip -q "$TMPDIR/S.apk" -d "$TMPDIR"
-                        if [ ! -f "$TMPDIR/assets/rish" ] || [ ! -f "$TMPDIR/assets/rish_shizuku.dex" ]; then
-                            echo "Missing files in APK, skipping..."
-                        else
-                            # Install section
-                            BIN=$(dirname "$(command -v bash 2> /dev/null || command -v sh)")
-                            RISH="$BIN/rish"
-                            echo "Installing..."
-                            install -m644 "$TMPDIR/assets/rish_shizuku.dex" "$BIN/"
-                            install -m755 "$TMPDIR/assets/rish" "$BIN/"
-                            sed -i '/^#/d;s/PKG/com.termux/g' "$RISH"
-                            echo "Done! rish installed to $RISH"
-                        fi
-                    fi
-                    rm -rf "$TMPDIR" 2> /dev/null
-                fi
+              # Install section
+              BIN=$(dirname "$(command -v sh)")
+              RISH="$BIN/rish"
+              echo "Installing..."
+              install -m644 "$TMPDIR/assets/rish_shizuku.dex" "$BIN/"
+              install -m755 "$TMPDIR/assets/rish" "$BIN/"
+              sed -i '/^#/d;s/PKG/com.termux/g' "$RISH"
+              echo "Done! rish installed to $RISH"
             fi
+          fi
+          rm -rf "$TMPDIR" 2> /dev/null
         fi
+      fi
+    fi
 
-        # Make .bashrc
-        if ask "Setup custom .bashrc" y; then
-            cat > "$HOME/.bashrc" << EOF
+    # Make .bashrc
+    if ask "Setup custom .bashrc" y; then
+      cat > "$HOME/.bashrc" << EOF
 # Cache cleanup
-clear && echo "Loading..." && ( apt-get autoremove -y && apt-get autoclean -y ) >/dev/null 2>&1
+clear && echo "Loading..." && ( apt autoclean -y && apt autoremove -y ) >/dev/null 2>&1
 clear
 
 # Custom PS1
@@ -352,8 +321,8 @@ $([ "${I3_INSTALLED:-0}" -eq 1 ] && echo "alias de='sh \$HOME/.termux/.starti3'"
 $([ "${FASTFETCH_LOGO:-0}" -eq 0 ] && echo "alias fastfetch='\$PREFIX/bin/fastfetch -l none'")
 $([ "${RUN_FASTFETCH:-0}" -eq 1 ] && echo fastfetch)
 EOF
-        fi
     fi
+  fi
 fi
 
 # Finalizing

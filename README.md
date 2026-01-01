@@ -11,17 +11,15 @@ Automated setup script for [Termux](https://github.com/termux/termux-app).
 
 
 ## Features
-- **Custom Fonts (JetBrains Mono [Nerd Font])**
+- **Terminal Customization (Font and Theme)**
 - **Custom .bashrc**: Custom productivity aliases, shortcut and enhanced commands
-- **Tokyo Night Theme**
-- **Fastfetch custom configuration** 
-- **Desktop Environment**: Xfce or i3 via Termux:X11
+- **Desktop Environment**: via Termux:X11
 - **Audio Support (PluseAudio)**
-- **ADB Shell Access**: using rish ([Shizuku](https://github.com/RikkaApps/Shizuku))
+- **ADB Shell Access**: using ([Shizuku](https://github.com/RikkaApps/Shizuku))
 <details>
 <summary><strong>Notes:</strong></summary>
 
-- For basic version available features is only **Custom Fonts (JetBrains Mono [Nerd Font])** and **Custom .bashrc**
+- For basic version available features is only **Custom Fonts** and **Custom .bashrc**
 
 </details>
 
@@ -29,8 +27,8 @@ Automated setup script for [Termux](https://github.com/termux/termux-app).
 ## Requirements
 - [Termux app](https://github.com/termux/termux-app)
 - Android 7.0+
-- 4GB storage recommend (2GB minimal)
-- 6GB RAM recommended (4GB minimal)
+- 6GB storage recommend (4GB minimal)
+- 8GB RAM recommended (4GB minimal)
 - Stable internet connection
 - [Termux:X11](https://github.com/termux/termux-x11) app (Optional for Displaying Desktop Environment)
 
@@ -89,7 +87,7 @@ DE         # Launch XFCE4 or I3 based on selection
 ## Troubleshooting
 - **Installation fails**: Check internet connection and storage space  
 - **Font not applied**: Restart Termux, verify `~/.termux/font.ttf` exists
-- **Package errors**: Run `pkg update && pkg clean` then retry
+- **Package errors**: Run `pkg update && pkg clean` then retry, if the issues still occurred try change repo `termux-change-repo`
 - **Desktop issues** (Full only): Update Termux:X11, grant required permissions
 
 
@@ -105,7 +103,7 @@ DE         # Launch XFCE4 or I3 based on selection
 ### This project uses the following components:
 - **[Termux](https://github.com/termux/termux-app)** - Android terminal emulator
 - **[Termux:X11](https://github.com/termux/termux-x11)** - X11 server implementation for Termux
-- **[JetBrains Mono](https://github.com/JetBrains/JetBrainsMono) [Nerd Fonts](https://github.com/ryanoasis/nerd-fonts)** - a typeface made for developers + nerd-fonts
+- **[Noto](https://notofonts.github.io) + [Nerd Fonts](https://github.com/ryanoasis/nerd-fonts)** - A typeface for the world + nerd-fonts
 - **[Tokyo Night](https://github.com/tokyo-night/tokyo-night-vscode-theme)** - Color scheme
 - **[Fastfetch](https://github.com/fastfetch-cli/fastfetch)** - System information tool
 - **[XFCE](https://www.xfce.org/)** - a lightweight desktop environment

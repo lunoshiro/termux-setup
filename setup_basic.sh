@@ -1,7 +1,7 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
 # Init
-echo "Termux Setup (Basic) v1.0"
+echo "Termux Setup (Basic)"
 echo "Hello $(whoami), starting setup..."
 
 cd "$HOME"
@@ -12,15 +12,15 @@ apt autoclean -y
 apt autoremove -y
 termux-setup-storage
 
-# Configure Terminal Environment
-echo "Installing JetBrainsMono Nerd Font..."
+# Configure
+echo "Installing Custom Font..."
 pkg install curl -y
 rm -f "$HOME/.termux/font.ttf"
-curl -L -o "$HOME/.termux/font.ttf" "https://raw.githubusercontent.com/ryanoasis/nerd-fonts/master/patched-fonts/JetBrainsMono/Ligatures/Regular/JetBrainsMonoNerdFontMono-Regular.ttf"
+curl -L -o "$HOME/.termux/font.ttf" "https://github.com/ryanoasis/nerd-fonts/raw/refs/heads/master/patched-fonts/Noto/Mono/NotoMonoNerdFontMono-Regular.ttf"
 
 # Make .bashrc
 echo "Setting up custom .bashrc..."
-cat >"$HOME/.bashrc" <<EOF
+cat > "$HOME/.bashrc" << EOF
 # Cache cleanup
 clear && ( apt autoclean -y && apt autoremove -y ) >/dev/null 2>&1
 clear
