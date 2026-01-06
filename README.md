@@ -35,14 +35,14 @@ Automated setup script for [Termux](https://github.com/termux/termux-app).
 
 ## Installation
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ownexcept/termux-setup/refs/heads/main/setup.sh -o setup.sh && bash setup.sh && rm setup.sh
+curl -fsSL https://raw.githubusercontent.com/lunoshiro/termux-setup/refs/heads/main/setup.sh -o setup.sh && bash setup.sh && rm setup.sh
 ```
 <details>
 <summary><strong>Basic Version</strong></summary>
 
 ### Basic Version
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ownexcept/termux-setup/refs/heads/main/setup_basic.sh -o setup_basic.sh && bash setup_basic.sh && rm setup_basic.sh
+curl -fsSL https://raw.githubusercontent.com/lunoshiro/termux-setup/refs/heads/main/setup_basic.sh -o setup_basic.sh && bash setup_basic.sh && rm setup_basic.sh
 ```
 
 </details>
